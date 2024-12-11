@@ -11,8 +11,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
     email = Column(String(255))
-    phone = Column(String(20))
+    password = Column(String(255))
     role_id = Column(Integer, ForeignKey('bookstore.roles.id'), default=2)
 
     role = relationship("Role", backref="users")
     subscriber = relationship("Subscriber", back_populates="user", uselist=False)
+    transactions = relationship("Transaction", back_populates="user")

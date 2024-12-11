@@ -42,17 +42,17 @@ class UserManagement:
 
         users = self.user_crud.read_all()
         for user in users:
-            self.tree.insert("", "end", values=(user.id, user.name, user.email, user.phone, user.role_id))
+            self.tree.insert("", "end", values=(user.id, user.name, user.email, user.password, user.role_id))
 
     def add_user(self):
         def save_user():
             name = name_entry.get()
             email = email_entry.get()
-            phone = phone_entry.get()
+            password = password_entry.get()
             role_id = role_id_entry.get()
 
-            if name and email and phone:
-                self.user_crud.create(name=name, email=email, phone=phone, role_id=int(role_id))
+            if name and email and password:
+                self.user_crud.create(name=name, email=email, password=password, role_id=int(role_id))
                 self.load_users()
                 add_window.destroy()
             else:
@@ -69,9 +69,9 @@ class UserManagement:
         email_entry = tk.Entry(add_window)
         email_entry.pack()
 
-        tk.Label(add_window, text="Телефон:").pack()
-        phone_entry = tk.Entry(add_window)
-        phone_entry.pack()
+        tk.Label(add_window, text="Пароль:").pack()
+        password_entry = tk.Entry(add_window)
+        password_entry.pack()
 
         tk.Label(add_window, text="Роль ID:").pack()
         role_id_entry = tk.Entry(add_window)

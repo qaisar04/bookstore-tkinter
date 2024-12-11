@@ -47,10 +47,6 @@ class AuthMenu:
         self.password_entry = tk.Entry(self.root, show="*")
         self.password_entry.pack()
 
-        tk.Label(self.root, text="Телефон:").pack()
-        self.phone_entry = tk.Entry(self.root)
-        self.phone_entry.pack()
-
         tk.Button(self.root, text="Зарегистрироваться", command=self.register).pack(pady=10)
         tk.Button(self.root, text="Назад", command=self.create_login_frame).pack(pady=5)
 
@@ -67,10 +63,10 @@ class AuthMenu:
             return
 
         user = self.user_crud.read_all()
-        user = next((u for u in user if u.email == email and u.phone == password), None)
+        user = next((u for u in user if u.email == email and u.password == password), None)
         if user:
             messagebox.showinfo("Успех", f"Добро пожаловать, {user.name}!")
-            self.root.destroy()
+            self.root.withdraw()
             self.open_main_window(user)
         else:
             messagebox.showerror("Ошибка", "Неверные email или пароль.")
@@ -79,9 +75,8 @@ class AuthMenu:
         name = self.name_entry.get()
         email = self.email_entry.get()
         password = self.password_entry.get()
-        phone = self.phone_entry.get()
 
-        if not name or not email or not password or not phone:
+        if not name or not email or not password:
             messagebox.showerror("Ошибка", "Заполните все поля!")
             return
 
@@ -90,7 +85,7 @@ class AuthMenu:
             messagebox.showerror("Ошибка", "Пользователь с таким email уже существует.")
             return
 
-        self.user_crud.create(name=name, email=email, phone=password)
+        self.user_crud.create(name=name, email=email, password=password)
         messagebox.showinfo("Успех", "Вы успешно зарегистрировались!")
         self.create_login_frame()
 

@@ -6,12 +6,19 @@ class BookRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def create(self, title: str, author: str, category: str, isbn: str, is_available: bool = True):
-        book = Book(title=title, author=author, category=category, isbn=isbn, is_available=is_available)
+    def create(self, title: str, author: str, category: str, isbn: str, price: float, is_available: bool = True):
+        book = Book(title=title, author=author, category=category, isbn=isbn, price=price, is_available=is_available)
         self.db.add(book)
         self.db.commit()
         self.db.refresh(book)
         return book
+
+    def search(self, query: str):
+        return self.db.query(Book).filter(
+            (Book.title.ilike(f"%{query}%")) |
+            (Book.author.ilike(f"%{query}%")) |
+            (Book.category.ilike(f"%{query}%"))
+        ).all()
 
     def read_all(self):
         return self.db.query(Book).all()

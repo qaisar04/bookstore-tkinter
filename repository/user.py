@@ -6,8 +6,8 @@ class UserRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def create(self, name: str, email: str, phone: str, role_id: int = None):
-        user = User(name=name, email=email, phone=phone, role_id=role_id)
+    def create(self, name: str, email: str, password: str, role_id: int = None):
+        user = User(name=name, email=email, password=password, role_id=role_id)
         self.db.add(user)
         self.db.commit()
         self.db.refresh(user)

@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, Float
+from sqlalchemy.orm import relationship
+
 from config.db_connection import Base
 
 
@@ -13,3 +15,6 @@ class Book(Base):
     isbn = Column(String(13))
     is_available = Column(Boolean, default=True)
     quantity = Column(Integer, default=1)
+    price = Column(Float, nullable=False)
+
+    transactions = relationship("Transaction", back_populates="book")

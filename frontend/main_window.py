@@ -1,9 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
-import ttkbootstrap as ttkb
-from ttkbootstrap.constants import *
 
 from frontend.auth_menu import AuthMenu
+from frontend.transaction_management import TransactionManagement
 from frontend.user_management import UserManagement
 from frontend.book_management import BookManagement
 
@@ -27,6 +26,10 @@ class MainWindow:
 
         self.notebook.add(self.book_tab, text="Управление книгами")
         self.book_management = BookManagement(self.book_tab, self.user)
+
+        self.transaction_tab = ttk.Frame(self.notebook)
+        self.notebook.add(self.transaction_tab, text="Управление транзакциями")
+        self.transaction_management = TransactionManagement(self.transaction_tab)
 
         self.button_frame = tk.Frame(root)
         self.button_frame.pack(pady=10)

@@ -4,6 +4,7 @@ from tkinter.filedialog import asksaveasfilename
 
 from repository.book import BookRepository
 from repository.subscribers import SubscriberRepository
+from repository.transaction import TransactionRepository
 from config.db_connection import SessionLocal
 from openpyxl import Workbook
 
@@ -14,21 +15,36 @@ class BookManagement:
         self.db = SessionLocal()
         self.book_crud = BookRepository(self.db)
         self.subscriber_crud = SubscriberRepository(self.db)
+        self.transaction_crud = TransactionRepository(self.db)
         self.user = user
 
         self.label = tk.Label(parent, text="Управление книгами", font=("Arial", 16))
         self.label.pack(pady=10)
 
-        self.tree = ttk.Treeview(parent, columns=("ID", "Название", "Автор", "Категория", "ISBN", "Доступно"), show="headings")
-        self.tree.pack(fill="both", expand=True)
+        # Поисковая строка
+        self.search_frame = tk.Frame(parent)
+        self.search_frame.pack(pady=5)
+
+        self.search_entry = tk.Entry(self.search_frame, width=30)
+        self.search_entry.pack(side="left", padx=5)
+        self.search_entry.bind("<Return>", lambda event: self.search_books())  # Поиск по Enter
+
+        self.search_button = tk.Button(self.search_frame, text="Поиск", command=self.search_books)
+        self.search_button.pack(side="left", padx=5)
+
+        # Таблица с книгами
+        self.tree = ttk.Treeview(parent, columns=("ID", "Название", "Автор", "Категория", "ISBN", "Цена", "Доступно"), show="headings")
+        self.tree.pack(fill="both", expand=True, pady=10)
 
         self.tree.heading("ID", text="ID")
         self.tree.heading("Название", text="Название")
         self.tree.heading("Автор", text="Автор")
         self.tree.heading("Категория", text="Категория")
         self.tree.heading("ISBN", text="ISBN")
+        self.tree.heading("Цена", text="Цена")
         self.tree.heading("Доступно", text="Доступно")
 
+        # Кнопки управления
         self.button_frame = tk.Frame(parent)
         self.button_frame.pack(pady=10)
 
@@ -52,6 +68,7 @@ class BookManagement:
         self.subscribe_button = tk.Button(self.button_frame, text="Подписаться на рассылку", command=self.save_subscription)
         self.subscribe_button.pack(side="left", padx=5)
 
+        # Загрузка книг в таблицу
         self.load_books()
 
     def load_books(self):
@@ -60,7 +77,23 @@ class BookManagement:
 
         books = self.book_crud.read_all()
         for book in books:
-            self.tree.insert("", "end", values=(book.id, book.title, book.author, book.category, book.isbn, book.is_available))
+            self.tree.insert("", "end", values=(book.id, book.title, book.author, book.category, book.isbn, f"{book.price:.2f}", book.is_available))
+
+    def search_books(self):
+        query = self.search_entry.get().strip()
+
+        if not query:
+            messagebox.showerror("Ошибка", "Введите ключевое слово для поиска!")
+            return
+
+        results = self.book_crud.search(query)
+        self.tree.delete(*self.tree.get_children())  # Очистить таблицу
+
+        if results:
+            for book in results:
+                self.tree.insert("", "end", values=(book.id, book.title, book.author, book.category, book.isbn, f"{book.price:.2f}", book.is_available))
+        else:
+            messagebox.showinfo("Результаты поиска", "Книги не найдены!")
 
     def add_book(self):
         def save_book():
@@ -68,13 +101,21 @@ class BookManagement:
             author = author_entry.get()
             category = category_entry.get()
             isbn = isbn_entry.get()
+            price = price_entry.get()
 
-            if title and author and isbn:
-                self.book_crud.create(title=title, author=author, category=category, isbn=isbn)
-                self.load_books()
-                add_window.destroy()
-            else:
+            if not title or not author or not isbn or not price:
                 messagebox.showerror("Ошибка", "Все поля должны быть заполнены!")
+                return
+
+            try:
+                price = float(price)
+            except ValueError:
+                messagebox.showerror("Ошибка", "Цена должна быть числом!")
+                return
+
+            self.book_crud.create(title=title, author=author, category=category, isbn=isbn, price=price)
+            self.load_books()
+            add_window.destroy()
 
         add_window = tk.Toplevel(self.parent)
         add_window.title("Добавить книгу")
@@ -94,6 +135,10 @@ class BookManagement:
         tk.Label(add_window, text="ISBN:").pack()
         isbn_entry = tk.Entry(add_window)
         isbn_entry.pack()
+
+        tk.Label(add_window, text="Цена:").pack()
+        price_entry = tk.Entry(add_window)
+        price_entry.pack()
 
         tk.Button(add_window, text="Сохранить", command=save_book).pack()
 
@@ -119,14 +164,28 @@ class BookManagement:
             messagebox.showerror("Ошибка", "Выберите книгу для покупки!")
             return
 
-        book_id = self.tree.item(selected_item[0], "values")[0]
+        book_id = int(self.tree.item(selected_item[0], "values")[0])
         selected_book = self.book_crud.read_by_id(book_id)
 
-        if selected_book and selected_book.quantity > 0:
-            selected_book.quantity -= 1
-            self.db.commit()
-            self.load_books()
-            messagebox.showinfo("Успех", f"Вы купили книгу '{selected_book.title}'!")
+        if selected_book and selected_book.is_available:
+            try:
+                # Создаем транзакцию
+                self.transaction_crud.create(user_id=self.user.id, book_id=book_id, price=selected_book.price)
+
+                # Уменьшаем количество книг и обновляем доступность
+                selected_book.quantity -= 1
+                if selected_book.quantity <= 0:
+                    selected_book.is_available = False
+
+                self.db.commit()
+
+                # Обновляем список книг
+                self.load_books()
+
+                messagebox.showinfo("Успех", f"Вы купили книгу '{selected_book.title}' за {selected_book.price:.2f}!")
+            except Exception as e:
+                self.db.rollback()
+                messagebox.showerror("Ошибка", f"Не удалось завершить покупку: {e}")
         else:
             messagebox.showerror("Ошибка", "Книга недоступна для покупки!")
 
@@ -178,15 +237,13 @@ class BookManagement:
             sheet = workbook.active
             sheet.title = "Books"
 
-            headers = ["ID", "Название", "Автор", "Категория", "ISBN", "Доступно"]
+            headers = ["ID", "Название", "Автор", "Категория", "ISBN", "Цена", "Доступно"]
             sheet.append(headers)
 
             for book in books:
-                sheet.append([book.id, book.title, book.author, book.category, book.isbn, "Да" if book.is_available else "Нет"])
+                sheet.append([book.id, book.title, book.author, book.category, book.isbn, f"{book.price:.2f}", "Да" if book.is_available else "Нет"])
 
             workbook.save(file_path)
             messagebox.showinfo("Успех", f"Данные успешно экспортированы в файл: {file_path}")
         except Exception as e:
             messagebox.showerror("Ошибка", f"Не удалось экспортировать данные: {e}")
-
-
