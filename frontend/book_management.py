@@ -169,17 +169,14 @@ class BookManagement:
 
         if selected_book and selected_book.is_available:
             try:
-                # Создаем транзакцию
                 self.transaction_crud.create(user_id=self.user.id, book_id=book_id, price=selected_book.price)
 
-                # Уменьшаем количество книг и обновляем доступность
                 selected_book.quantity -= 1
                 if selected_book.quantity <= 0:
                     selected_book.is_available = False
 
                 self.db.commit()
 
-                # Обновляем список книг
                 self.load_books()
 
                 messagebox.showinfo("Успех", f"Вы купили книгу '{selected_book.title}' за {selected_book.price:.2f}!")

@@ -29,7 +29,7 @@ class MainWindow:
 
         self.transaction_tab = ttk.Frame(self.notebook)
         self.notebook.add(self.transaction_tab, text="Управление транзакциями")
-        self.transaction_management = TransactionManagement(self.transaction_tab)
+        self.transaction_management = TransactionManagement(self.transaction_tab, user)
 
         self.button_frame = tk.Frame(root)
         self.button_frame.pack(pady=10)

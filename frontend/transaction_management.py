@@ -12,11 +12,17 @@ class TransactionManagement:
         self.db = SessionLocal()
         self.transaction_crud = TransactionRepository(self.db)
 
+        self.button_frame = tk.Frame(parent)
+        self.button_frame.pack(pady=10)
+
         self.label = tk.Label(parent, text="Управление транзакциями", font=("Arial", 16))
         self.label.pack(pady=10)
 
         self.tree = ttk.Treeview(parent, columns=("ID", "Пользователь", "Книга", "Дата покупки", "Цена"), show="headings")
         self.tree.pack(fill="both", expand=True)
+
+        self.refresh_button = tk.Button(self.button_frame, text="Обновить список", command=self.load_transactions)
+        self.refresh_button.pack(side="left", padx=5)
 
         self.tree.heading("ID", text="ID")
         self.tree.heading("Пользователь", text="Пользователь")

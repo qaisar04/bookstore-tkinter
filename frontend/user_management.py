@@ -19,7 +19,7 @@ class UserManagement:
         self.tree.heading("ID", text="ID")
         self.tree.heading("Имя", text="Имя")
         self.tree.heading("Email", text="Email")
-        self.tree.heading("Телефон", text="Телефон")
+        self.tree.heading("Пароль", text="Пароль")
         self.tree.heading("Роль", text="Роль")
 
         self.button_frame = tk.Frame(parent)
