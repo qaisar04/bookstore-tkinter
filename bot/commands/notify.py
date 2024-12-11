@@ -1,5 +1,5 @@
 from aiogram import Router, types
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandObject
 from repository.subscribers import SubscriberRepository
 from config.db_connection import SessionLocal
 
@@ -7,14 +7,14 @@ notify_router = Router()
 
 
 @notify_router.message(Command("notify"))
-async def notify_command(message: types.Message):
+async def notify_command(message: types.Message, command: CommandObject):
     admin_id = 697119914
 
     if message.from_user.id != admin_id:
         await message.answer("У вас нет прав для этой команды.")
         return
 
-    text = message.get_args()  # Получаем текст после команды
+    text = command.args
     if not text:
         await message.answer("Введите текст сообщения для рассылки, например: /notify Ваше сообщение")
         return

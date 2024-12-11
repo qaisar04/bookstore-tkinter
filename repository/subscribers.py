@@ -22,7 +22,7 @@ class SubscriberRepository:
         subscription = self.db.query(Subscriber).filter(Subscriber.chat_id == chat_id).first()
 
         if not subscription:
-            return False  # Подписка не найдена
+            return False
 
         self.db.delete(subscription)
         self.db.commit()

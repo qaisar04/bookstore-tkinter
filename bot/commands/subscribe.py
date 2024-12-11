@@ -5,7 +5,6 @@ from aiogram.fsm.state import StatesGroup, State
 from config.db_connection import SessionLocal
 from repository import UserRepository
 from repository.subscribers import SubscriberRepository
-from models.subscribers import Subscriber
 from aiogram.filters import Command
 
 subscribe_router = Router()
