@@ -30,6 +30,9 @@ class TransactionManagement:
         self.export_diagram_button = tk.Button(self.button_frame, text="Скачать диаграмму", command=self.save_expenses_chart)
         self.export_diagram_button.pack(side="left", padx=5)
 
+        self.user_stats_button = tk.Button(self.button_frame, text="Статистика пользователя", command=self.show_user_statistics)
+        self.user_stats_button.pack(side="left", padx=5)
+
         self.tree.heading("ID", text="ID")
         self.tree.heading("Пользователь", text="Пользователь")
         self.tree.heading("Книга", text="Книга")
@@ -78,15 +81,9 @@ class TransactionManagement:
         dates = sorted(expenses_per_day.keys())
         totals = [expenses_per_day[date] for date in dates]
 
-        if len(dates) == 1:
-            plt.figure(figsize=(6, 4))
-            plt.bar(dates, totals)
-            plt.title("Количество покупок по дням (Одна дата)", fontsize=14)
-        else:
-            plt.figure(figsize=(10, 6))
-            plt.bar(dates, totals)
-            plt.title("Количество покупок по дням", fontsize=16)
-
+        plt.figure(figsize=(10, 6))
+        plt.bar(dates, totals, color="skyblue")
+        plt.title("Количество покупок по дням", fontsize=16)
         plt.xlabel("Дата", fontsize=12)
         plt.ylabel("Количество покупок", fontsize=12)
         plt.xticks(rotation=45, ha="right")
@@ -108,3 +105,24 @@ class TransactionManagement:
         except Exception as e:
             plt.close()
             messagebox.showerror("Ошибка", f"Не удалось сохранить диаграмму: {e}")
+
+    def show_user_statistics(self):
+        if self.user.role_id != 1:
+            transactions = self.transaction_crud.read_by_user(self.user.id)
+        else:
+            messagebox.showinfo("Информация", "Эта функция предназначена для обычных пользователей.")
+            return
+
+        total_expenses = sum(transaction.price for transaction in transactions)
+        total_books = len(transactions)
+
+        stats_window = tk.Toplevel(self.parent)
+        stats_window.title("Статистика пользователя")
+        stats_window.geometry("300x200")
+
+        tk.Label(stats_window, text="Статистика пользователя", font=("Arial", 16)).pack(pady=10)
+
+        tk.Label(stats_window, text=f"Общая сумма расходов: {total_expenses:.2f}").pack(pady=5)
+        tk.Label(stats_window, text=f"Общее количество покупок: {total_books}").pack(pady=5)
+
+        tk.Button(stats_window, text="Закрыть", command=stats_window.destroy).pack(pady=10)
