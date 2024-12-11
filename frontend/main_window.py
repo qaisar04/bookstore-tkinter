@@ -5,6 +5,7 @@ from frontend.auth_menu import AuthMenu
 from frontend.transaction_management import TransactionManagement
 from frontend.user_management import UserManagement
 from frontend.book_management import BookManagement
+from frontend.feedback_management import FeedbackManagement
 
 
 class MainWindow:
@@ -19,6 +20,7 @@ class MainWindow:
 
         self.user_tab = ttk.Frame(self.notebook)
         self.book_tab = ttk.Frame(self.notebook)
+        self.feedback_tab = ttk.Frame(self.notebook)
 
         if self.user.role_id == 1:
             self.notebook.add(self.user_tab, text="Управление пользователями")
@@ -30,6 +32,9 @@ class MainWindow:
         self.transaction_tab = ttk.Frame(self.notebook)
         self.notebook.add(self.transaction_tab, text="Управление транзакциями")
         self.transaction_management = TransactionManagement(self.transaction_tab, user)
+
+        self.notebook.add(self.feedback_tab, text="Обратная связь")
+        self.feedback_management = FeedbackManagement(self.feedback_tab, self.user)
 
         self.button_frame = tk.Frame(root)
         self.button_frame.pack(pady=10)

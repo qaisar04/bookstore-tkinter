@@ -65,8 +65,8 @@ class AuthMenu:
         user = self.user_crud.read_all()
         user = next((u for u in user if u.email == email and u.password == password), None)
         if user:
-            messagebox.showinfo("Успех", f"Добро пожаловать, {user.name}!")
-            self.root.withdraw()
+            # messagebox.showinfo("Успех", f"Добро пожаловать, {user.name}!")
+            self.root.destroy()
             self.open_main_window(user)
         else:
             messagebox.showerror("Ошибка", "Неверные email или пароль.")

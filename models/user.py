@@ -17,3 +17,4 @@ class User(Base):
     role = relationship("Role", backref="users")
     subscriber = relationship("Subscriber", back_populates="user", uselist=False)
     transactions = relationship("Transaction", back_populates="user")
+    feedbacks = relationship("Feedback", back_populates="user")
