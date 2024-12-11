@@ -44,13 +44,15 @@ class BookManagement:
         self.tree.heading("Цена", text="Цена")
         self.tree.heading("Доступно", text="Доступно")
 
-        # Кнопки управления
         self.button_frame = tk.Frame(parent)
         self.button_frame.pack(pady=10)
 
         if self.user.role_id == 1:
             self.add_button = tk.Button(self.button_frame, text="Добавить", command=self.add_book)
             self.add_button.pack(side="left", padx=5)
+
+            self.edit_button = tk.Button(self.button_frame, text="Редактировать", command=self.edit_book)
+            self.edit_button.pack(side="left", padx=5)
 
             self.delete_button = tk.Button(self.button_frame, text="Удалить", command=self.delete_book)
             self.delete_button.pack(side="left", padx=5)
@@ -68,7 +70,6 @@ class BookManagement:
         self.subscribe_button = tk.Button(self.button_frame, text="Подписаться на рассылку", command=self.save_subscription)
         self.subscribe_button.pack(side="left", padx=5)
 
-        # Загрузка книг в таблицу
         self.load_books()
 
     def load_books(self):
@@ -141,6 +142,86 @@ class BookManagement:
         price_entry.pack()
 
         tk.Button(add_window, text="Сохранить", command=save_book).pack()
+
+    def edit_book(self):
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showerror("Ошибка", "Выберите книгу для редактирования!")
+            return
+
+        book_id = int(self.tree.item(selected_item[0], "values")[0])
+        book = self.book_crud.read_by_id(book_id)
+
+        def save_changes():
+            title = title_entry.get()
+            author = author_entry.get()
+            category = category_entry.get()
+            isbn = isbn_entry.get()
+            price = price_entry.get()
+            quantity = quantity_entry.get()
+
+            if not title or not author or not isbn or not price or not quantity:
+                messagebox.showerror("Ошибка", "Все поля должны быть заполнены!")
+                return
+
+            try:
+                price = float(price)
+                quantity = int(quantity)
+            except ValueError:
+                messagebox.showerror("Ошибка", "Цена должна быть числом, а количество - целым числом!")
+                return
+
+            try:
+                self.book_crud.update(book_id=book.id,
+                                      title=title,
+                                      author=author,
+                                      category=category,
+                                      isbn=isbn,
+                                      price=price,
+                                      quantity=quantity,
+                                      is_available=quantity > 0)
+                self.db.commit()
+                self.load_books()
+                edit_window.destroy()
+                messagebox.showinfo("Успех", "Данные книги успешно обновлены!")
+            except Exception as e:
+                self.db.rollback()
+                messagebox.showerror("Ошибка", f"Не удалось обновить книгу: {e}")
+
+        edit_window = tk.Toplevel(self.parent)
+        edit_window.title("Редактировать книгу")
+
+        tk.Label(edit_window, text="Название:").pack()
+        title_entry = tk.Entry(edit_window)
+        title_entry.insert(0, book.title)
+        title_entry.pack()
+
+        tk.Label(edit_window, text="Автор:").pack()
+        author_entry = tk.Entry(edit_window)
+        author_entry.insert(0, book.author)
+        author_entry.pack()
+
+        tk.Label(edit_window, text="Категория:").pack()
+        category_entry = tk.Entry(edit_window)
+        category_entry.insert(0, book.category)
+        category_entry.pack()
+
+        tk.Label(edit_window, text="ISBN:").pack()
+        isbn_entry = tk.Entry(edit_window)
+        isbn_entry.insert(0, book.isbn)
+        isbn_entry.pack()
+
+        tk.Label(edit_window, text="Цена:").pack()
+        price_entry = tk.Entry(edit_window)
+        price_entry.insert(0, f"{book.price:.2f}")
+        price_entry.pack()
+
+        tk.Label(edit_window, text="Количество:").pack()
+        quantity_entry = tk.Entry(edit_window)
+        quantity_entry.insert(0, str(book.quantity))
+        quantity_entry.pack()
+
+        tk.Button(edit_window, text="Сохранить изменения", command=save_changes).pack()
 
     def delete_book(self):
         selected_item = self.tree.selection()

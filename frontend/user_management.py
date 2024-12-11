@@ -13,7 +13,7 @@ class UserManagement:
         self.label = tk.Label(parent, text="Управление пользователями", font=("Arial", 16))
         self.label.pack(pady=10)
 
-        self.tree = ttk.Treeview(parent, columns=("ID", "Имя", "Email", "Телефон", "Роль"), show="headings")
+        self.tree = ttk.Treeview(parent, columns=("ID", "Имя", "Email", "Пароль", "Роль"), show="headings")
         self.tree.pack(fill="both", expand=True)
 
         self.tree.heading("ID", text="ID")
@@ -30,6 +30,9 @@ class UserManagement:
 
         self.add_button = tk.Button(self.button_frame, text="Добавить", command=self.add_user)
         self.add_button.pack(side="left", padx=5)
+
+        self.edit_button = tk.Button(self.button_frame, text="Редактировать", command=self.edit_user)
+        self.edit_button.pack(side="left", padx=5)
 
         self.delete_button = tk.Button(self.button_frame, text="Удалить", command=self.delete_user)
         self.delete_button.pack(side="left", padx=5)
@@ -79,12 +82,60 @@ class UserManagement:
 
         tk.Button(add_window, text="Сохранить", command=save_user).pack()
 
+    def edit_user(self):
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showerror("Ошибка", "Выберите пользователя для редактирования!")
+            return
+
+        user_id = int(self.tree.item(selected_item[0], "values")[0])
+        user = self.user_crud.read_by_id(user_id)
+
+        def save_changes():
+            name = name_entry.get()
+            email = email_entry.get()
+            password = password_entry.get()
+            role_id = role_id_entry.get()
+
+            if name and email and password:
+                self.user_crud.update(user_id=user.id, name=name, email=email, password=password, role_id=int(role_id))
+                self.load_users()
+                edit_window.destroy()
+            else:
+                messagebox.showerror("Ошибка", "Все поля должны быть заполнены!")
+
+        edit_window = tk.Toplevel(self.parent)
+        edit_window.title("Редактировать пользователя")
+
+        tk.Label(edit_window, text="Имя:").pack()
+        name_entry = tk.Entry(edit_window)
+        name_entry.insert(0, user.name)
+        name_entry.pack()
+
+        tk.Label(edit_window, text="Email:").pack()
+        email_entry = tk.Entry(edit_window)
+        email_entry.insert(0, user.email)
+        email_entry.pack()
+
+        tk.Label(edit_window, text="Пароль:").pack()
+        password_entry = tk.Entry(edit_window, show="*")
+        password_entry.insert(0, user.password)
+        password_entry.pack()
+
+        tk.Label(edit_window, text="Роль ID:").pack()
+        role_id_entry = tk.Entry(edit_window)
+        role_id_entry.insert(0, user.role_id)
+        role_id_entry.pack()
+
+        tk.Button(edit_window, text="Сохранить изменения", command=save_changes).pack()
+
     def delete_user(self):
         selected_item = self.tree.selection()
         if not selected_item:
             messagebox.showerror("Ошибка", "Выберите пользователя для удаления!")
             return
 
-        user_id = self.tree.item(selected_item[0], "values")[0]
-        self.user_crud.delete(int(user_id))
+        user_id = int(self.tree.item(selected_item[0], "values")[0])
+        self.user_crud.delete(user_id)
         self.load_users()
+
