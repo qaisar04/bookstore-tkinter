@@ -5,7 +5,7 @@ from aiogram.types import BotCommand
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from dotenv import load_dotenv
-from bot.commands import start_router, subscribe_router, notify_router, unsubscribe_router
+from bot.commands import start_router, subscribe_router, notify_router, unsubscribe_router, books_router
 import os
 
 load_dotenv()
@@ -23,6 +23,7 @@ async def set_commands(bot: Bot):
         BotCommand(command="/start", description="Начать"),
         BotCommand(command="/subscribe", description="Подписаться на уведомления"),
         BotCommand(command="/unsubscribe", description="Отписаться от уведомлений"),
+        BotCommand(command="/all_books", description="Получить список книг"),
         BotCommand(command="/notify", description="Рассылка уведомлений (для администраторов)"),
     ]
     await bot.set_my_commands(commands)
@@ -34,6 +35,7 @@ def setup_routes(dp: Dispatcher):
     dp.include_router(subscribe_router)
     dp.include_router(notify_router)
     dp.include_router(unsubscribe_router)
+    dp.include_router(books_router)
     logging.info("Роутеры успешно зарегистрированы.")
 
 
