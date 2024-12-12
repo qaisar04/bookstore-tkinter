@@ -78,7 +78,7 @@ class BookManagement:
 
         books = self.book_crud.read_all()
         for book in books:
-            self.tree.insert("", "end", values=(book.id, book.title, book.author, book.category, book.isbn, f"{book.price:.2f}", book.is_available))
+            self.tree.insert("", "end", values=(book.id, book.title, book.author, book.category, book.isbn, f"{book.price:.2f}", "Да" if book.is_available else "Нет"))
 
     def search_books(self):
         query = self.search_entry.get().strip()

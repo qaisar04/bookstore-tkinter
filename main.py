@@ -16,7 +16,7 @@ def initialize_database():
 
 
 def main():
-    # initialize_database()
+    initialize_database()
     bot_thread = threading.Thread(target=run_bot, daemon=True)
     bot_thread.start()
 

@@ -45,7 +45,7 @@ class UserManagement:
 
         users = self.user_crud.read_all()
         for user in users:
-            self.tree.insert("", "end", values=(user.id, user.name, user.email, user.password, user.role_id))
+            self.tree.insert("", "end", values=(user.id, user.name, user.email, user.password,  "Админ" if user.role_id == 1 else "Пользователь"))
 
     def add_user(self):
         def save_user():
